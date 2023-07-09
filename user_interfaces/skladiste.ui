@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>945</width>
+    <height>720</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QFrame" name="frame_skladiste">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>110</y>
+      <width>1211</width>
+      <height>741</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QWidget" name="gridLayoutWidget">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>371</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_pretraga_knjige">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_knjige_search_skladiste">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="text_knjige_search_skladiste"/>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="button_search_skladiste">
+        <property name="text">
+         <string>PushButton</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QScrollArea" name="scrollArea_knjige_skladiste">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>90</y>
+       <width>441</width>
+       <height>451</height>
+      </rect>
+     </property>
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>439</width>
+        <height>449</height>
+       </rect>
+      </property>
+      <widget class="QListView" name="listView_knjige_skladiste">
+       <property name="geometry">
+        <rect>
+         <x>-5</x>
+         <y>1</y>
+         <width>441</width>
+         <height>451</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="gridLayoutWidget_2">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>70</y>
+       <width>301</width>
+       <height>532</height>
+      </rect>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_nova_knjiga">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_autor_nove_knjige">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_kolicina_nove_knjige">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_stupac">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_naziv_nove_knjige">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QTextEdit" name="text_kolicina_nove_knjige"/>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_unos_nove_knjige">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QComboBox" name="comboBox_polica"/>
+      </item>
+      <item row="3" column="1">
+       <widget class="QTextEdit" name="text_godina_nove_knjige"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_godina_nove_knjige">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_polica">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QTextEdit" name="text_naziv_nove_knjige"/>
+      </item>
+      <item row="2" column="1">
+       <widget class="QTextEdit" name="text_autor_nove_knjige"/>
+      </item>
+      <item row="9" column="0">
+       <widget class="QPushButton" name="button_unos_nove_knjige">
+        <property name="text">
+         <string>PushButton</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_red_nove_knjige">
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="comboBox_red"/>
+      </item>
+      <item row="7" column="1">
+       <widget class="QComboBox" name="comboBox_stupac"/>
+      </item>
+     </layout>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
