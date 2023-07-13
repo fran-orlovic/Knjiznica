@@ -2,7 +2,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import sys
 import sqlite3
 
-from utilities import login_provjera
+from utilities import login_provjera, novi_korisnik_provjera
 
 con = sqlite3.connect("knjiznica.db")
 cur = con.cursor()
@@ -13,7 +13,7 @@ class Window(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle("Knjižnica")
         self.setWindowIcon(QtGui.QIcon('images/knjige.png'))
-        self.setGeometry(1600, 100, 900, 600)
+        self.setGeometry(300, 100, 900, 600)
         self.initUi()
 
     def initUi(self):
@@ -189,7 +189,7 @@ class Window(QtWidgets.QMainWindow):
 
         # gridLayout_novi_korisnik
         self.gridLayoutWidget = QtWidgets.QWidget(self.frame_unos_novog_korisnika)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 20, 200, 200))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 20, 200, 250))
         self.gridLayout_novi_korisnik = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout_novi_korisnik.setContentsMargins(0, 0, 0, 0)
 
@@ -238,17 +238,22 @@ class Window(QtWidgets.QMainWindow):
         self.gridLayout_novi_korisnik.addWidget(self.text_adresa, 3, 1, 1, 1)
 
         # button_dovrsi_unos
-        self.button_dovrsi_unos = QtWidgets.QPushButton(self.frame_unos_novog_korisnika)
+        self.button_dovrsi_unos = QtWidgets.QPushButton(self)
         self.button_dovrsi_unos.setText("Dovrši unos")
-        # TODO: Dodati connect za unos u listu
+        self.button_dovrsi_unos.clicked.connect(self.unos_novog_korisnika)
         self.gridLayout_novi_korisnik.addWidget(self.button_dovrsi_unos, 4, 0, 1, 2)
 
         # button_natrag
-        self.button_natrag = QtWidgets.QPushButton(self.frame_unos_novog_korisnika)
+        self.button_natrag = QtWidgets.QPushButton(self)
         self.button_natrag.setText("Natrag")
         self.button_natrag.clicked.connect(self.stanje_posudbi_window)
         # self.button_natrag.setFixedHeight(25)
         self.gridLayout_novi_korisnik.addWidget(self.button_natrag, 5, 0, 1, 1)
+
+        # label_error_novi_korisnik
+        self.label_error_novi_korisnik = QtWidgets.QLabel(self)
+        self.label_error_novi_korisnik.setText("")
+        self.gridLayout_novi_korisnik.addWidget(self.label_error_novi_korisnik, 6, 0, 1, 2)
 
         # KORISNICI WINDOW END #
 
@@ -704,9 +709,15 @@ class Window(QtWidgets.QMainWindow):
             elif self.text_knjige_search.text() == str(knjiga[3])[:duzina]:
                 self.listView_knjige.insertItem(0, f"{knjiga[0]}. {knjiga[1]}, {knjiga[2]}, {knjiga[3]}")
 
+    def reset_background(self):
+        for i in range(1, 5):
+            for j in range(1, 6):
+                item = self.gridLayout_polica.itemAtPosition(i, j).widget()
+                item.setStyleSheet("background: white;")
+
     def odabir_knjige(self):
         query_odabir_knjige = """
-                            SELECT * FROM knjiga
+                            SELECT * FROM knjiga ORDER BY naziv DESC
                         """
         knjige = cur.execute(query_odabir_knjige).fetchall()
         prev_knjiga = None
@@ -714,6 +725,11 @@ class Window(QtWidgets.QMainWindow):
             if knjiga[1] != prev_knjiga:
                 item = self.gridLayout_polica.itemAtPosition(knjiga[6], knjiga[7]).widget()
                 item.setStyleSheet("*{background: rgb(225,180,95);}")
+                prev_odabir = knjiga[1]
+                break
+        # radi bojanje ali boja krivu ćeliju, nis se ne crasha doduse
+        if prev_odabir != knjiga[1]:
+            self.reset_background()
 
     def povratak_knjige(self):
         query_povrat_knjige = """
@@ -755,6 +771,30 @@ class Window(QtWidgets.QMainWindow):
                     self.listView_posudeno.addItem(f"{korisnik[1]}, {korisnik[3]}")
                 elif korisnik[2] == 1:
                     self.listView_vraceno.addItem(f"{korisnik[1]}, {korisnik[3]}")
+
+    def unos_novog_korisnika(self):
+        error_unos = novi_korisnik_provjera(self.text_ime.text(), self.text_prezime.text(), self.text_oib.text(),
+                                            self.text_adresa.text())
+        if error_unos is None:
+            query = f"""
+                    INSERT INTO korisnik (ime, prezime, oib, adresa) VALUES
+                    ('{self.text_ime.text()}', '{self.text_prezime.text()}', '{self.text_oib.text()}', 
+                    '{self.text_adresa.text()}')
+                """
+            cur.execute(query)
+            con.commit()
+
+            self.listView_korisnici.insertItem(0, f"{self.text_ime.text()}, {self.text_prezime.text()}, "
+                                               f"{self.text_oib.text()}, {self.text_adresa.text()}")
+
+            self.text_ime.setText('')
+            self.text_prezime.setText('')
+            self.text_oib.setText('')
+            self.text_adresa.setText('')
+            self.label_error_novi_korisnik.setText('Uspješno kreiran račun!')
+
+        else:
+            self.label_error_novi_korisnik.setText(error_unos)
 
     def korisnici_frame(self):
         self.frame_posudba.hide()
