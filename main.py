@@ -784,8 +784,9 @@ class Window(QtWidgets.QMainWindow):
             cur.execute(query)
             con.commit()
 
-            self.listView_korisnici.insertItem(0, f"{self.text_ime.text()}, {self.text_prezime.text()}, "
-                                               f"{self.text_oib.text()}, {self.text_adresa.text()}")
+            id_novi = len(self.listView_korisnici) + 1
+            self.listView_korisnici.insertItem(id_novi, f"{id_novi}. {self.text_ime.text()} {self.text_prezime.text()}, "
+                                               f"{self.text_oib.text()}, {self.text_adresa.text()}, {0.0} €")
 
             self.text_ime.setText('')
             self.text_prezime.setText('')
