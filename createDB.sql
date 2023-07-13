@@ -30,7 +30,7 @@ CREATE TABLE posudba(
     korisnik_id INTEGER,
     knjiga_id INTEGER,
     datum_posudbe DATE,
-    zakasnina INT,
+    zakasnina FLOAT,
     FOREIGN KEY (korisnik_id) REFERENCES korisnik(id) ON UPDATE CASCADE ON DELETE SET NULL,
     FOREIGN KEY (knjiga_id) REFERENCES knjiga(id) ON UPDATE CASCADE ON DELETE SET NULL
 );
@@ -62,8 +62,8 @@ INSERT INTO knjiga (naziv, autor, izdavac, godina_izdanja, polica, redak, stupac
     ('Harry Potter i Odaja tajni', 'J.K. Rowling', 'Lumin', '1998', 'A', 3, 1, 1);
 
 INSERT INTO posudba (korisnik_id, knjiga_id, datum_posudbe, zakasnina) VALUES
-    (1, 1, "2023-07-10", 0),
-    (2, 2, "2023-07-10", 0);
+    (1, 1, "10.07.2023.", 0),
+    (2, 2, "10.07.2023.", 0);
 
 INSERT INTO stanje (dostupnost) VALUES
     ('slobodno'),

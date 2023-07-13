@@ -17,7 +17,8 @@ class Window(QtWidgets.QMainWindow):
         self.initUi()
 
     def initUi(self):
-
+        date = QtCore.QDate.currentDate()
+        self.datum = date.toString("dd.MM.yyyy.")
         # LOGIN WINDOW #
         # frame_login
         self.frame_login = QtWidgets.QFrame(self)
@@ -124,11 +125,6 @@ class Window(QtWidgets.QMainWindow):
         self.text_search.textChanged.connect(self.search_korisnika)
         self.gridLayout_search.addWidget(self.text_search, 0, 1, 1, 1, QtCore.Qt.AlignLeft)
 
-        # button_search -> TODO: ne treba ako koristis EVENT za povezivanje (Antolic na teamsu)
-        # self.button_search = QtWidgets.QPushButton(self.gridLayoutWidget)
-        # self.button_search.setMaximumSize(50, 25)
-        # self.gridLayout_search.addWidget(self.button_search, 1, 1, 1, 1)
-
         # scrollArea korisnici
         self.scrollArea_korisnici = QtWidgets.QScrollArea(self.frame_korisnici_podaci)
         self.scrollArea_korisnici.setGeometry(QtCore.QRect(10, 60, 380, 260))
@@ -140,6 +136,7 @@ class Window(QtWidgets.QMainWindow):
         # button odabir korisnika za posudbu
         self.button_odabir_korisnika = QtWidgets.QPushButton(self.frame_korisnici_podaci)
         self.button_odabir_korisnika.setText("Odaberi korisnika")
+        self.button_odabir_korisnika.clicked.connect(self.odabir_korisnika)
         self.button_odabir_korisnika.setGeometry(QtCore.QRect(10, 350, 100, 25))
 
         # button unos novog korisnika
@@ -169,6 +166,7 @@ class Window(QtWidgets.QMainWindow):
         # button_vracanje_knjige
         self.button_vracanje_knjige = QtWidgets.QPushButton(self.frame_stanje_posudbi)
         self.button_vracanje_knjige.setText("Vraćanje knjige")
+        self.button_vracanje_knjige.clicked.connect(self.povratak_knjige)
         self.button_vracanje_knjige.setGeometry(QtCore.QRect(100, 230, 120, 25))
 
         # label_vraceno
@@ -275,6 +273,7 @@ class Window(QtWidgets.QMainWindow):
 
         # text_knjige_search
         self.text_knjige_search = QtWidgets.QLineEdit(self.gridLayoutWidget)
+        self.text_knjige_search.textChanged.connect(self.search_knjige)
         self.gridLayout_pretraga_knjige.addWidget(self.text_knjige_search, 0, 1, 1, 1)
 
         # scrollArea_knjige
@@ -407,6 +406,7 @@ class Window(QtWidgets.QMainWindow):
         # button_odabir_knjige
         self.button_odabir_knjige = QtWidgets.QPushButton(self.frame_posudba)
         self.button_odabir_knjige.setText("Odaberi knjigu")
+        self.button_odabir_knjige.clicked.connect(self.odabir_knjige)
         self.button_odabir_knjige.setGeometry(QtCore.QRect(10, 350, 100, 25))
 
         # label_posudba_korisnik
@@ -580,14 +580,32 @@ class Window(QtWidgets.QMainWindow):
             self.frame_login.hide()
             self.frame_menu.show()
             self.frame_korisnici_podaci.show()
+
+            query_posudbe = """
+                SELECT id, datum_posudbe, zakasnina FROM posudba
+            """
+            posudbe = cur.execute(query_posudbe).fetchall()
+            for posudba in posudbe:
+                if (int(self.datum[3:5]) - int(posudba[1][3:5])) >= 2:
+                    zakasnina = (int(self.datum[3:5]) - int(posudba[1][3:5])) * 2.1
+                    query_zakasnina = f"""
+                        UPDATE posudba
+                        SET zakasnina='{zakasnina}'
+                        WHERE id='{posudba[0]}'
+                    """
+                    cur.execute(query_zakasnina)
+                    con.commit()
             query_korisnici = """
                 SELECT korisnik_id, ime, prezime, oib, adresa, zakasnina FROM posudba
                 LEFT JOIN korisnik ON korisnik.id = posudba.korisnik_id
             """
             korisnici = cur.execute(query_korisnici).fetchall()
+            prev_korisnik = None
             for korisnik in korisnici:
-                self.listView_korisnici.insertItem(1, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
-                                                      f"{korisnik[4]}, {korisnik[5]} €")
+                if korisnik[0] != prev_korisnik:
+                    self.listView_korisnici.insertItem(1, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
+                                                          f"{korisnik[4]}, {korisnik[5]} €")
+                    prev_korisnik = korisnik[0]
 
             query_knjige = """
                 SELECT naziv, autor, izdavac, godina_izdanja, stanje_id FROM knjiga ORDER BY naziv DESC
@@ -625,22 +643,118 @@ class Window(QtWidgets.QMainWindow):
         """
         korisnici = cur.execute(query_search_korisnika).fetchall()
         self.listView_korisnici.clear()
+        duzina = len(self.text_search.text())
         for korisnik in korisnici:
             if self.text_search.text() == "":
                 self.listView_korisnici.insertItem(0, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
                                                       f"{korisnik[4]}, {korisnik[5]} €")
-            elif self.text_search.text() == korisnik[1]:
+            elif self.text_search.text() == korisnik[1][:duzina]:
                 self.listView_korisnici.insertItem(0, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
                                                       f"{korisnik[4]}, {korisnik[5]} €")
-            elif self.text_search.text() == korisnik[2]:
+            elif self.text_search.text() == korisnik[2][:duzina]:
                 self.listView_korisnici.insertItem(0, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
                                                       f"{korisnik[4]}, {korisnik[5]} €")
-            elif self.text_search.text() == str(korisnik[3]):
+            elif self.text_search.text() == str(korisnik[3])[:duzina]:
                 self.listView_korisnici.insertItem(0, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
                                                       f"{korisnik[4]}, {korisnik[5]} €")
-            elif self.text_search.text() == korisnik[4]:
+            elif self.text_search.text() == korisnik[4][:duzina]:
                 self.listView_korisnici.insertItem(0, f"{korisnik[0]}. {korisnik[1]} {korisnik[2]}, {korisnik[3]}, "
                                                       f"{korisnik[4]}, {korisnik[5]} €")
+
+    def odabir_korisnika(self):
+        query_odabir_korisnika = """
+                    SELECT korisnik_id, naziv, stanje_id, datum_posudbe FROM posudba
+                    LEFT JOIN korisnik ON korisnik.id = posudba.korisnik_id
+                    LEFT JOIN knjiga ON knjiga.id = posudba.knjiga_id
+                """
+        korisnici = cur.execute(query_odabir_korisnika).fetchall()
+
+        odabrani_red = self.listView_korisnici.currentRow()
+
+        self.listView_posudeno.clear()
+        self.listView_vraceno.clear()
+
+        for korisnik in korisnici:
+            if korisnik[0] == odabrani_red + 1:
+                if korisnik[2] == 2:
+                    self.listView_posudeno.insertItem(0, f"{korisnik[1]}, {korisnik[3]}")
+                elif korisnik[2] == 1:
+                    self.listView_vraceno.insertItem(0, f"{korisnik[1]}, {korisnik[3]}")
+
+    def search_knjige(self):
+        query_search_knjige = """
+            SELECT naziv, autor, izdavac, godina_izdanja FROM knjiga ORDER BY naziv DESC
+        """
+        knjige = cur.execute(query_search_knjige).fetchall()
+        self.listView_knjige.clear()
+        duzina = len(self.text_knjige_search.text())
+        for knjiga in knjige:
+            if self.text_knjige_search.text() == "":
+                self.listView_knjige.insertItem(0, f"{knjiga[0]}. {knjiga[1]}, {knjiga[2]}, {knjiga[3]}")
+
+            elif self.text_knjige_search.text() == knjiga[0][:duzina]:
+                self.listView_knjige.insertItem(0, f"{knjiga[0]}. {knjiga[1]}, {knjiga[2]}, {knjiga[3]}")
+
+            elif self.text_knjige_search.text() == knjiga[1][:duzina]:
+                self.listView_knjige.insertItem(0, f"{knjiga[0]}. {knjiga[1]}, {knjiga[2]}, {knjiga[3]}")
+
+            elif self.text_knjige_search.text() == knjiga[2][:duzina]:
+                self.listView_knjige.insertItem(0, f"{knjiga[0]}. {knjiga[1]}, {knjiga[2]}, {knjiga[3]}")
+
+            elif self.text_knjige_search.text() == str(knjiga[3])[:duzina]:
+                self.listView_knjige.insertItem(0, f"{knjiga[0]}. {knjiga[1]}, {knjiga[2]}, {knjiga[3]}")
+
+    def odabir_knjige(self):
+        query_odabir_knjige = """
+                            SELECT * FROM knjiga
+                        """
+        knjige = cur.execute(query_odabir_knjige).fetchall()
+        prev_knjiga = None
+        for knjiga in knjige:
+            if knjiga[1] != prev_knjiga:
+                item = self.gridLayout_polica.itemAtPosition(knjiga[6], knjiga[7]).widget()
+                item.setStyleSheet("*{background: rgb(225,180,95);}")
+
+    def povratak_knjige(self):
+        query_povrat_knjige = """
+                    SELECT korisnik_id, knjiga_id, zakasnina FROM posudba
+                """
+        posudbe = cur.execute(query_povrat_knjige).fetchall()
+
+        odabrani_red_korisnika = self.listView_korisnici.currentRow()
+        odabrani_red_knjige = self.listView_posudeno.currentRow()
+        i = 0
+
+        for posudba in posudbe:
+            if posudba[0] == odabrani_red_korisnika + 1:
+                if odabrani_red_knjige == i:
+                    query_promjena_stanja = f"""
+                        UPDATE knjiga
+                        SET stanje_id='1'
+                        WHERE id='{posudba[1]}'
+                    """
+                    cur.execute(query_promjena_stanja)
+                    con.commit()
+                    break
+                else:
+                    i += 1
+
+        query_odabir_korisnika = """
+                    SELECT korisnik_id, naziv, stanje_id, datum_posudbe FROM posudba
+                    LEFT JOIN korisnik ON korisnik.id = posudba.korisnik_id
+                    LEFT JOIN knjiga ON knjiga.id = posudba.knjiga_id
+                """
+        korisnici = cur.execute(query_odabir_korisnika).fetchall()
+
+        self.listView_posudeno.clear()
+        self.listView_vraceno.clear()
+
+        for korisnik in korisnici:
+            if korisnik[0] == odabrani_red_korisnika + 1:
+                if korisnik[2] == 2:
+                    self.listView_posudeno.addItem(f"{korisnik[1]}, {korisnik[3]}")
+                elif korisnik[2] == 1:
+                    self.listView_vraceno.addItem(f"{korisnik[1]}, {korisnik[3]}")
 
     def korisnici_frame(self):
         self.frame_posudba.hide()
